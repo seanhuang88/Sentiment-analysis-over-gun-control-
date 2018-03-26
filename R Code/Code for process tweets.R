@@ -1,5 +1,5 @@
 #------------------------------------------------
-# Prepare for classification using Decision Tree
+# Sentiment analysis over “gun control”
 #------------------------------------------------
 
 #Install necessary library
