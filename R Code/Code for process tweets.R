@@ -1,5 +1,5 @@
 #------------------------------------------------
-# Sentiment analysis over “gun control”
+# Sentiment analysis over "gun control"
 #------------------------------------------------
 
 #Install necessary library
@@ -112,7 +112,7 @@ wordcloud(my.corpus, max.words = 100, random.order = FALSE)
 datasetAnainst <- read_twitter_csv("MyDataWithAgainstClass.csv")
 
 my.docs <- VectorSource(datasetAnainst$text)
-# ... Follow same steps as from line 70 to 91
+# ... Follow same steps as from line 85 to 109
 
 
 
@@ -239,4 +239,39 @@ classifier <- naiveBayes(train.set, train_labels, laplace = 1)
 
 # Testing the Predictions
 pred <- predict(classifier, newdata=test.set)
-# I get error "Error in `[.default`(object$tables[[v]], , nd + islogical[attribs[v]]) : subscript out of bounds"
+
+#Create a truth table by tabulating the predicted class labels with the actual class labels 
+table("Predictions"= pred,  "Actual" = test_labels )
+
+# Prepare the confusion matrix
+conf.mat <- table(pred, test_labels)
+
+# Accuracy
+accuracy <- sum(diag(conf.mat))/length(test_labels) * 100
+# Result [1] 65.33333
+
+#-----------------------------------------------------------
+# Apply Naive Bayes to the dataset without classification 
+#-----------------------------------------------------------
+
+# According to the accuracy result, Naive Bayes is a much better model
+
+datasetClass <- read_twitter_csv("MyDataWithoutClass.csv")
+datasetClass$For.Class <- as.factor(datasetClass$For.Class)
+my.docs <- VectorSource(datasetClass$text)
+my.corpus <- Corpus(my.docs)
+my.corpus <- tm_map(my.corpus, removePunctuation)
+my.corpus <- tm_map(my.corpus, stemDocument)
+my.corpus <- tm_map(my.corpus, stemDocument)
+my.corpus <- tm_map(my.corpus, removeNumbers)
+my.corpus <- tm_map(my.corpus, content_transformer(tolower))
+my.corpus <- tm_map(my.corpus, stripWhitespace)
+my.corpus <- tm_map(my.corpus, removeWords, c('gun',stopwords("english")))
+dtm <- DocumentTermMatrix(my.corpus)
+fivefreq <- findFreqTerms(dtm, 5)
+doc.term.matrix <- DocumentTermMatrix(my.corpus, control=list(dictionary = fivefreq))
+doc.term.matrix <- apply(doc.term.matrix, 2, convert_count)
+pred <- predict(classifier, newdata=doc.term.matrix)
+plot(pred)
+
+# result is apparently that much more people support "Gun Control" in US.
